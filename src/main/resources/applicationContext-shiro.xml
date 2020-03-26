@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans  
+                        http://www.springframework.org/schema/beans/spring-beans-4.3.xsd  
+                        http://www.springframework.org/schema/context  
+                        http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+    
+    <context:property-placeholder ignore-unresolvable="true" location="classpath:app.properties" />
+    
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"></property>
+        <property name="loginUrl" value="/sys/login"></property>  <!-- 斜干/ -->
+        <property name="unauthorizedUrl" value="/sys/login"></property>
+        <property name="filterChainDefinitions">
+            <ref bean="shirofilterChainDefinitions"/>
+        </property>
+    </bean>
+    
+    <bean name="shirofilterChainDefinitions" class="java.lang.String">
+        <constructor-arg>
+            <value>
+                /statics/** = anon
+                /sys/** = anon
+                /emp/get/** = anon
+                /** = authc
+            </value>
+        </constructor-arg>
+    </bean>
+    
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="sysRealm" />
+        <property name="sessionManager" ref="sessionManager" />
+        <property name="cacheManager" ref="cacheManager" />
+        <property name="rememberMeManager" ref="cookieRememberMeManager" />
+    </bean>
+    
+    <bean id="sysRealm" class="com.app.net.modules.sys.shiro.SysRealm">
+        <property name="credentialsMatcher" ref="credentialsMatcher" />
+    </bean>
+    
+    <!--定义凭证匹配器，也就是对密码进行算法加密和次数-->
+    <bean id="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+        <property name="hashAlgorithmName" value="md5" />
+        <property name="hashIterations" value="1" />
+    </bean>
+    
+    
+    <!-- 2019-09-26 -->
+    <!-- <bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager"> -->
+    <bean id="sessionManager" class="com.app.net.common.redis.shiro.session.SysSessionManager">
+       <!--  <property name="globalSessionTimeout" value="600000" /> -->    <!-- 用户无请求多久session就过期 -->
+        <!-- <property name="deleteInvalidSessions" value="true" />  
+        <property name="sessionValidationSchedulerEnabled" value="true" /> --><!-- 定时检查失效的session -->  
+        <property name="sessionDAO" ref="sessionDAO" />
+        <property name="sessionIdUrlRewritingEnabled" value="false" />
+        <!-- <property name="sessionIdCookie" ref="sessionIdCookie"/>  -->
+    </bean>
+    
+    <bean id="sessionDAO" class="com.app.net.common.redis.shiro.session.RedisSessionDao"></bean>  
+
+    <bean id="sessionIdGenerator"  class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator" />  
+
+	<!-- 配置緩存管理器 -->
+    <bean id="cacheManager" class="com.app.net.common.redis.shiro.cache.RedisCacheManager"></bean>
+    
+	<!-- rememberme -->
+    <bean id="cookieRememberMeManager" class="org.apache.shiro.web.mgt.CookieRememberMeManager">
+    	<property name="cookie" ref="sessionIdCookie"></property>
+    </bean>  
+    <bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">  
+        <constructor-arg value="rememberme" />  
+       <!--  <property name="httpOnly" value="true" />   -->
+        <property name="maxAge" value="2592000" />  
+        <!-- <property name="name" value="hacnet.session.id"></property>  
+        <property name="domain" value="sadf"></property> -->  
+    </bean>    
+    
+</beans>

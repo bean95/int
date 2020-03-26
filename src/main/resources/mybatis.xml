@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "mybatis-3-config.dtd" >
+
+<configuration>
+    
+    <settings>
+        <setting name="jdbcTypeForNull" value="NULL" />
+        <setting name="logImpl" value="LOG4J" />
+    </settings>
+    
+    <typeAliases>
+        <package name="com.app.net.modules" />
+    </typeAliases>
+    
+    <!-- <mappers>
+        <package name="classpath:mappings/modules/**/*.xml" />
+    </mappers> -->
+
+</configuration>

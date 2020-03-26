@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans  
+                        http://www.springframework.org/schema/beans/spring-beans-4.3.xsd  
+                        http://www.springframework.org/schema/context  
+                        http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+    
+    <!-- <context:component-scan base-package="com.***.modules.quartz" /> -->
+
+	<!-- 任务触发器详细信息bean -->
+    <bean id="expiredCaseCleanJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="expiredCaseCleanJob"></property>
+        <property name="targetMethod" value="execute"></property>
+        <property name="concurrent" value="false" /> 
+        <!-- 作业不并发调度:于相同的JobDetail，当指定多个Trigger时, 很可能第一个job完成之前，第二个job就开始了。指定concurrent设为false，多个job不会并发运行，第二个job将不会在第一个job完成之前开始  -->
+    </bean>
+    
+    <!-- 定义trigger 触发器 -->
+    <bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="expiredCaseCleanJobDetail"></property>
+        <property name="cronExpression" value="0 30-59 * ? * *"></property>
+    </bean>
+    
+    <!-- 设置触发器调度工厂 -->
+    <bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list>
+                <ref bean="cronTrigger"/>
+           </list>
+        </property>
+    </bean>
+    
+</beans>
